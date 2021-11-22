@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,12 +17,74 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using GeographyTools;
+using Microsoft.EntityFrameworkCore;
 using Windows.Devices.Geolocation;
 
 namespace Assignment3
 {
+    public class Ticket
+    {
+        public int ID { get; set; }
+        [Column(TypeName = "datetime")]
+        public DateTime TimePurchased { get; set; }
+        public Screening Screening { get; set; }
+    }
+
+    [Index(nameof(Name), IsUnique = true)]
+    public class Cinema
+    {
+        public int ID { get; set; }
+        [MaxLength(255)]
+        [Required]
+        public string Name { get; set; }
+        [MaxLength(255)]
+        [Required]
+        public string City { get; set; }
+    }
+
+    public class Screening
+    {
+        public int ID { get; set; }
+        [Column(TypeName = "time(0)")]
+        public TimeSpan Time { get; set; }
+        [Required]
+        public Movie Movie { get; set; }
+        [Required]
+        public Cinema Cinema { get; set; }
+    }
+
+    public class Movie
+    {
+        public int ID { get; set; }
+        [MaxLength(255)]
+        [Required]
+        public string Title { get; set; }
+        public Int16 Runtime { get; set; }
+        [Column(TypeName ="date")]
+        public DateTime ReleaseDate { get; set; }
+        [MaxLength(255)]
+        [Required]
+        public string PosterPath { get; set; }
+        public Screening Screening { get; set; }
+    }
+
+    public class AppDbContext : DbContext
+    {
+        public DbSet<Ticket> Tickets { get; set; }
+        public DbSet<Cinema> Cinemas { get; set; }
+        public DbSet<Screening> Screenings { get; set; }
+        public DbSet<Movie> Movies { get; set; }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder options)
+        {
+            options.UseSqlServer(@"Server=(local)\SQLEXPRESS;Database=DataAccessGUIAssignment;Integrated Security=True");
+            options.LogTo(msg => Debug.WriteLine(msg), new[] { DbLoggerCategory.Database.Command.Name });
+        }
+    }
+
     public partial class MainWindow : Window
     {
+        private AppDbContext database = new AppDbContext();
         private Thickness spacing = new Thickness(5);
         private FontFamily mainFont = new FontFamily("Constantia");
 
