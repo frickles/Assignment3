@@ -261,7 +261,7 @@ namespace Assignment3
         }
         #endregion
 
-        // Get a list of all cities that have cinemas in them.
+
         //private IEnumerable<string> GetCities()
         //{
         //    string sql = @"
@@ -278,15 +278,16 @@ namespace Assignment3
         //    return cities;
         //}
 
-        public void GetCities()
-        {
-            foreach (var city in database.Cinemas.OrderBy(c => c.City))
-            {
-                database.Cinemas.Add(city);
-            }
+        // Get a list of all cities that have cinemas in them.
+        //public void GetCities()
+        //{
+        //    foreach (var city in database.Cinemas.OrderBy(c => c.City))
+        //    {
+        //        database.Cinemas.Add(city);
+        //    }
 
-            database.SaveChanges();
-        }
+        //    database.SaveChanges();
+        //}
 
         // Get a list of all cinemas in the currently selected city.
         private IEnumerable<string> GetCinemasInSelectedCity()
