@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Assignment3.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20211122102713_First")]
+    [Migration("20211124093749_First")]
     partial class First
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -29,23 +29,19 @@ namespace Assignment3.Migrations
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("City")
+                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
-
-                    b.Property<int?>("ScreeningID")
-                        .HasColumnType("int");
 
                     b.HasKey("ID");
 
                     b.HasIndex("Name")
-                        .IsUnique()
-                        .HasFilter("[Name] IS NOT NULL");
-
-                    b.HasIndex("ScreeningID");
+                        .IsUnique();
 
                     b.ToTable("Cinemas");
                 });
@@ -58,22 +54,22 @@ namespace Assignment3.Migrations
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("PosterPath")
+                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
+
+                    b.Property<DateTime>("ReleaseDate")
+                        .HasColumnType("date");
 
                     b.Property<short>("Runtime")
                         .HasColumnType("smallint");
 
-                    b.Property<int?>("ScreeningID")
-                        .HasColumnType("int");
-
                     b.Property<string>("Title")
+                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
                     b.HasKey("ID");
-
-                    b.HasIndex("ScreeningID");
 
                     b.ToTable("Movies");
                 });
@@ -85,7 +81,10 @@ namespace Assignment3.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<int?>("TicketID")
+                    b.Property<int?>("CinemaID")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MovieID")
                         .HasColumnType("int");
 
                     b.Property<TimeSpan>("Time")
@@ -93,7 +92,9 @@ namespace Assignment3.Migrations
 
                     b.HasKey("ID");
 
-                    b.HasIndex("TicketID");
+                    b.HasIndex("CinemaID");
+
+                    b.HasIndex("MovieID");
 
                     b.ToTable("Screenings");
                 });
@@ -105,45 +106,41 @@ namespace Assignment3.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+                    b.Property<int?>("ScreeningID")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("TimePurchased")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime");
 
                     b.HasKey("ID");
+
+                    b.HasIndex("ScreeningID");
 
                     b.ToTable("Tickets");
                 });
 
-            modelBuilder.Entity("Assignment3.Cinema", b =>
-                {
-                    b.HasOne("Assignment3.Screening", null)
-                        .WithMany("Cinemas")
-                        .HasForeignKey("ScreeningID");
-                });
-
-            modelBuilder.Entity("Assignment3.Movie", b =>
-                {
-                    b.HasOne("Assignment3.Screening", null)
-                        .WithMany("Movies")
-                        .HasForeignKey("ScreeningID");
-                });
-
             modelBuilder.Entity("Assignment3.Screening", b =>
                 {
-                    b.HasOne("Assignment3.Ticket", null)
-                        .WithMany("Screenings")
-                        .HasForeignKey("TicketID");
-                });
+                    b.HasOne("Assignment3.Cinema", "Cinema")
+                        .WithMany()
+                        .HasForeignKey("CinemaID");
 
-            modelBuilder.Entity("Assignment3.Screening", b =>
-                {
-                    b.Navigation("Cinemas");
+                    b.HasOne("Assignment3.Movie", "Movie")
+                        .WithMany()
+                        .HasForeignKey("MovieID");
 
-                    b.Navigation("Movies");
+                    b.Navigation("Cinema");
+
+                    b.Navigation("Movie");
                 });
 
             modelBuilder.Entity("Assignment3.Ticket", b =>
                 {
-                    b.Navigation("Screenings");
+                    b.HasOne("Assignment3.Screening", "Screening")
+                        .WithMany()
+                        .HasForeignKey("ScreeningID");
+
+                    b.Navigation("Screening");
                 });
 #pragma warning restore 612, 618
         }

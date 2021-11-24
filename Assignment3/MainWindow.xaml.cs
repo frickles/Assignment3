@@ -27,6 +27,7 @@ namespace Assignment3
         public int ID { get; set; }
         [Column(TypeName = "datetime")]
         public DateTime TimePurchased { get; set; }
+        [Required]
         public Screening Screening { get; set; }
     }
 
@@ -60,12 +61,11 @@ namespace Assignment3
         [Required]
         public string Title { get; set; }
         public Int16 Runtime { get; set; }
-        [Column(TypeName ="date")]
+        [Column(TypeName = "date")]
         public DateTime ReleaseDate { get; set; }
         [MaxLength(255)]
         [Required]
         public string PosterPath { get; set; }
-        public Screening Screening { get; set; }
     }
 
     public class AppDbContext : DbContext
@@ -85,6 +85,7 @@ namespace Assignment3
     public partial class MainWindow : Window
     {
         private AppDbContext database = new AppDbContext();
+
         private Thickness spacing = new Thickness(5);
         private FontFamily mainFont = new FontFamily("Constantia");
 
@@ -108,6 +109,7 @@ namespace Assignment3
             connection = new SqlConnection(@"Server=(local)\SQLExpress;Database=DataAccessGUIAssignment;Integrated Security=SSPI;");
             connection.Open();
 
+            #region Design
             // Window options
             Title = "Cinemania";
             Width = 1000;
@@ -157,7 +159,7 @@ namespace Assignment3
             {
                 Margin = spacing
             };
-            foreach (string city in GetCities())
+            foreach (string city in database.Cinemas.Select(c => c.City))
             {
                 cityComboBox.Items.Add(city);
             }
@@ -257,22 +259,33 @@ namespace Assignment3
 
             return grid;
         }
+        #endregion
 
         // Get a list of all cities that have cinemas in them.
-        private IEnumerable<string> GetCities()
+        //private IEnumerable<string> GetCities()
+        //{
+        //    string sql = @"
+        //        SELECT DISTINCT City
+        //        FROM Cinemas
+        //        ORDER BY City";
+        //    using var command = new SqlCommand(sql, connection);
+        //    using var reader = command.ExecuteReader();
+        //    var cities = new List<string>();
+        //    while (reader.Read())
+        //    {
+        //        cities.Add(Convert.ToString(reader["City"]));
+        //    }
+        //    return cities;
+        //}
+
+        public void GetCities()
         {
-            string sql = @"
-                SELECT DISTINCT City
-                FROM Cinemas
-                ORDER BY City";
-            using var command = new SqlCommand(sql, connection);
-            using var reader = command.ExecuteReader();
-            var cities = new List<string>();
-            while (reader.Read())
+            foreach (var city in database.Cinemas.OrderBy(c => c.City))
             {
-                cities.Add(Convert.ToString(reader["City"]));
+                database.Cinemas.Add(city);
             }
-            return cities;
+
+            database.SaveChanges();
         }
 
         // Get a list of all cinemas in the currently selected city.
