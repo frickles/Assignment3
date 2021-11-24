@@ -159,7 +159,7 @@ namespace Assignment3
             {
                 Margin = spacing
             };
-            foreach (string city in database.Cinemas.Select(c => c.City))
+            foreach (string city in database.Cinemas.Select(c => c.City).Distinct())
             {
                 cityComboBox.Items.Add(city);
             }
