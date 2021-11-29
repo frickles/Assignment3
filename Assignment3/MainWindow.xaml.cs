@@ -262,13 +262,13 @@ namespace Assignment3
         #endregion
 
         //Get a list of all cities that have cinemas in them.
-        public void GetCities()
-        {
-            foreach (var city in database.Cinemas.OrderBy(c => c.City))
-            {
-                database.Cinemas.Add(city);
-            }
-        }
+        //public void GetCities()
+        //{
+        //    foreach (var city in database.Cinemas.OrderBy(c => c.City))
+        //    {
+        //        database.Cinemas.Add(city);
+        //    }
+        //}
 
         // Update the GUI with the cinemas in the currently selected city.
         private void UpdateCinemaList()
