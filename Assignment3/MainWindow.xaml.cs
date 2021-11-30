@@ -78,7 +78,7 @@ namespace Assignment3
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
             options.UseSqlServer(@"Server=(local)\SQLEXPRESS;Database=DataAccessGUIAssignment;Integrated Security=True");
-            options.LogTo(msg => Debug.WriteLine(msg), new[] { DbLoggerCategory.Database.Command.Name });
+            //options.LogTo(msg => Debug.WriteLine(msg), new[] { DbLoggerCategory.Database.Command.Name });
         }
     }
 
@@ -275,7 +275,6 @@ namespace Assignment3
         {
             cinemaListBox.Items.Clear();
             string currentCity = (string)cityComboBox.SelectedItem;
-
             foreach (var cinema in database.Cinemas.Where(c => c.City == currentCity).OrderBy(c => c.Name).Select(c => c.Name))
             {
                 cinemaListBox.Items.Add(cinema);
@@ -292,11 +291,10 @@ namespace Assignment3
             }
             else
             {
-                //string currentCity = (string)cinemaListBox.SelectedItem;
                 //var queries = database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(c => c.Cinema.Name == currentCity).ToList();
-                string currentCinema = (string)cinemaListBox.SelectedItem;
-                //var queries = database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(c => c.Cinema.Name == currentCinema).Select(s => s.Movie.Title).ToList();
 
+                //var queries = database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(c => c.Cinema.Name == currentCinema).Select(s => s.Movie.Title).ToList();
+                string currentCinema = (string)cinemaListBox.SelectedItem;
                 int[] option = database.Screenings
                     .Include(s => s.Cinema)
                     .Include(s => s.Movie)
@@ -304,93 +302,88 @@ namespace Assignment3
                     .Select(s => s.ID)
                     .ToArray();
 
-                for (int o = 0; o < option.Count(); o++)
+                foreach (var item in option)
                 {
-                    int screeningID = option[o];
-                    
-                        // Create the button that will show all the info about the screening and let us buy a ticket for it.
-                        var button = new Button
+                    // Create the button that will show all the info about the screening and let us buy a ticket for it.
+                    var button = new Button
+                    {
+                        Background = Brushes.Transparent,
+                        BorderThickness = new Thickness(0),
+                        Padding = spacing,
+                        Cursor = Cursors.Hand,
+                        HorizontalContentAlignment = HorizontalAlignment.Stretch
+                    };
+                    screeningPanel.Children.Add(button);
+
+                    //int screeningID = Convert.ToInt32(reader["ID"]);
+
+                    // When we click a screening, buy a ticket for it and update the GUI with the latest list of tickets.
+                    button.Click += (sender, e) =>
                         {
-                            Background = Brushes.Transparent,
-                            BorderThickness = new Thickness(0),
-                            Padding = spacing,
-                            Cursor = Cursors.Hand,
-                            HorizontalContentAlignment = HorizontalAlignment.Stretch
+                            BuyTicket(Convert.ToInt32(option));
                         };
-                        screeningPanel.Children.Add(button);
 
-                        //int screeningID = Convert.ToInt32(reader["ID"]);
-                        //int[] screeningID = database.Screenings.Select(s => s.ID).ToArray();
+                    // The rest of this method is just creating the GUI element for the screening.
+                    var grid = new Grid();
+                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                    grid.ColumnDefinitions.Add(new ColumnDefinition());
+                    grid.RowDefinitions.Add(new RowDefinition());
+                    grid.RowDefinitions.Add(new RowDefinition());
+                    grid.RowDefinitions.Add(new RowDefinition());
+                    button.Content = grid;
 
+                    //var image = CreateImage(@"Posters\" + reader["PosterPath"]);
+                    var posters = @"Posters\" + database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(c => c.Cinema.Name == currentCinema).Select(m => m.Movie.PosterPath).FirstOrDefault();
+                    var image = CreateImage(posters);
+                    image.Width = 50;
+                    image.Margin = spacing;
+                    //image.ToolTip = new ToolTip { Content = reader["Title"] };
+                    image.ToolTip = new ToolTip { Content = database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(c => c.Cinema.Name == currentCinema).Select(m => m.Movie.Title).FirstOrDefault() };
+                    AddToGrid(grid, image, 0, 0);
+                    Grid.SetRowSpan(image, 3);
 
-                        // When we click a screening, buy a ticket for it and update the GUI with the latest list of tickets.
-                        button.Click += (sender, e) =>
-                            {
-                                BuyTicket(Convert.ToInt32(screeningID));
-                            };
+                    //var time = (TimeSpan)reader["Time"];
+                    //var time = TimeSpan.Parse(database.Screenings.Select(s => s.Time).FirstOrDefault().ToString());
+                    var time = TimeSpan.Parse(database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(c => c.Cinema.Name == currentCinema).Select(s => s.Time).FirstOrDefault().ToString());
+                    var timeHeading = new TextBlock
+                    {
+                        Text = TimeSpanToString(time),
+                        Margin = spacing,
+                        FontFamily = new FontFamily("Corbel"),
+                        FontSize = 14,
+                        FontWeight = FontWeights.Bold,
+                        Foreground = Brushes.Yellow
+                    };
+                    AddToGrid(grid, timeHeading, 0, 1);
 
-                        // The rest of this method is just creating the GUI element for the screening.
-                        var grid = new Grid();
-                        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                        grid.ColumnDefinitions.Add(new ColumnDefinition());
-                        grid.RowDefinitions.Add(new RowDefinition());
-                        grid.RowDefinitions.Add(new RowDefinition());
-                        grid.RowDefinitions.Add(new RowDefinition());
-                        button.Content = grid;
+                    var titleHeading = new TextBlock
+                    {
+                        //Text = Convert.ToString(reader["Title"]),
+                        Text = Convert.ToString(database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(c => c.Cinema.Name == currentCinema).Select(m => m.Movie.Title).FirstOrDefault().ToString()),
+                        Margin = spacing,
+                        FontFamily = mainFont,
+                        FontSize = 16,
+                        Foreground = Brushes.White,
+                        TextTrimming = TextTrimming.CharacterEllipsis
+                    };
+                    AddToGrid(grid, titleHeading, 1, 1);
 
-                        //var image = CreateImage(@"Posters\" + reader["PosterPath"]);
-                        var posters = @"Posters\" + database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(c => c.Cinema.Name == currentCinema).Select(m => m.Movie.PosterPath).FirstOrDefault();
-                        var image = CreateImage(posters);
-                        image.Width = 50;
-                        image.Margin = spacing;
-                        //image.ToolTip = new ToolTip { Content = reader["Title"] };
-                        image.ToolTip = new ToolTip { Content = database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(c => c.Cinema.Name == currentCinema).Select(m => m.Movie.Title).FirstOrDefault() };
-                        AddToGrid(grid, image, 0, 0);
-                        Grid.SetRowSpan(image, 3);
-
-                        //var time = (TimeSpan)reader["Time"];
-                        //var time = TimeSpan.Parse(database.Screenings.Select(s => s.Time).FirstOrDefault().ToString());
-                        var time = TimeSpan.Parse(database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(c => c.Cinema.Name == currentCinema).Select(s => s.Time).FirstOrDefault().ToString());
-                        var timeHeading = new TextBlock
-                        {
-                            Text = TimeSpanToString(time),
-                            Margin = spacing,
-                            FontFamily = new FontFamily("Corbel"),
-                            FontSize = 14,
-                            FontWeight = FontWeights.Bold,
-                            Foreground = Brushes.Yellow
-                        };
-                        AddToGrid(grid, timeHeading, 0, 1);
-
-                        var titleHeading = new TextBlock
-                        {
-                            //Text = Convert.ToString(reader["Title"]),
-                            Text = Convert.ToString(database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(c => c.Cinema.Name == currentCinema).Select(m => m.Movie.Title).FirstOrDefault().ToString()),
-                            Margin = spacing,
-                            FontFamily = mainFont,
-                            FontSize = 16,
-                            Foreground = Brushes.White,
-                            TextTrimming = TextTrimming.CharacterEllipsis
-                        };
-                        AddToGrid(grid, titleHeading, 1, 1);
-
-                        //var releaseDate = Convert.ToDateTime(reader["ReleaseDate"]);
-                        var releaseDate = Convert.ToDateTime(database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(c => c.Cinema.Name == currentCinema).Select(m => m.Movie.ReleaseDate).FirstOrDefault().ToString());
-                        //int runtimeMinutes = Convert.ToInt32(reader["Runtime"]);
-                        int runtimeMinutes = Convert.ToInt32(database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(c => c.Cinema.Name == currentCinema).Select(m => m.Movie.Runtime).FirstOrDefault().ToString());
-                        var runtime = TimeSpan.FromMinutes(runtimeMinutes);
-                        string runtimeString = runtime.Hours + "h " + runtime.Minutes + "m";
-                        var details = new TextBlock
-                        {
-                            Text = "📆 " + releaseDate.Year + "     ⏳ " + runtimeString,
-                            Margin = spacing,
-                            FontFamily = new FontFamily("Corbel"),
-                            Foreground = Brushes.Silver
-                        };
-                        AddToGrid(grid, details, 2, 1);
-                    }
+                    //var releaseDate = Convert.ToDateTime(reader["ReleaseDate"]);
+                    var releaseDate = Convert.ToDateTime(database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(c => c.Cinema.Name == currentCinema).Select(m => m.Movie.ReleaseDate).FirstOrDefault().ToString());
+                    //int runtimeMinutes = Convert.ToInt32(reader["Runtime"]);
+                    int runtimeMinutes = Convert.ToInt32(database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(c => c.Cinema.Name == currentCinema).Select(m => m.Movie.Runtime).FirstOrDefault().ToString());
+                    var runtime = TimeSpan.FromMinutes(runtimeMinutes);
+                    string runtimeString = runtime.Hours + "h " + runtime.Minutes + "m";
+                    var details = new TextBlock
+                    {
+                        Text = "📆 " + releaseDate.Year + "     ⏳ " + runtimeString,
+                        Margin = spacing,
+                        FontFamily = new FontFamily("Corbel"),
+                        Foreground = Brushes.Silver
+                    };
+                    AddToGrid(grid, details, 2, 1);
                 }
-            
+            }
         }
 
         // Buy a ticket for the specified screening and update the GUI with the latest list of tickets.
