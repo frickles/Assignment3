@@ -333,18 +333,18 @@ namespace Assignment3
                     button.Content = grid;
 
                     //var image = CreateImage(@"Posters\" + reader["PosterPath"]);
-                    var posters = @"Posters\" + database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(c => c.Cinema.Name == currentCinema).Select(m => m.Movie.PosterPath).FirstOrDefault();
+                    var posters = @"Posters\" + database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(s => s.ID == item).Select(m => m.Movie.PosterPath).FirstOrDefault();
                     var image = CreateImage(posters);
                     image.Width = 50;
                     image.Margin = spacing;
                     //image.ToolTip = new ToolTip { Content = reader["Title"] };
-                    image.ToolTip = new ToolTip { Content = database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(c => c.Cinema.Name == currentCinema).Select(m => m.Movie.Title).FirstOrDefault() };
+                    image.ToolTip = new ToolTip { Content = database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(s => s.ID == item).Select(m => m.Movie.Title).FirstOrDefault() };
                     AddToGrid(grid, image, 0, 0);
                     Grid.SetRowSpan(image, 3);
 
                     //var time = (TimeSpan)reader["Time"];
                     //var time = TimeSpan.Parse(database.Screenings.Select(s => s.Time).FirstOrDefault().ToString());
-                    var time = TimeSpan.Parse(database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(c => c.Cinema.Name == currentCinema).Select(s => s.Time).FirstOrDefault().ToString());
+                    var time = TimeSpan.Parse(database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(s => s.ID == item).Select(s => s.Time).FirstOrDefault().ToString());
                     var timeHeading = new TextBlock
                     {
                         Text = TimeSpanToString(time),
@@ -359,7 +359,7 @@ namespace Assignment3
                     var titleHeading = new TextBlock
                     {
                         //Text = Convert.ToString(reader["Title"]),
-                        Text = Convert.ToString(database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(c => c.Cinema.Name == currentCinema).Select(m => m.Movie.Title).FirstOrDefault().ToString()),
+                        Text = Convert.ToString(database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(s => s.ID == item).Select(m => m.Movie.Title).FirstOrDefault().ToString()),
                         Margin = spacing,
                         FontFamily = mainFont,
                         FontSize = 16,
@@ -369,9 +369,9 @@ namespace Assignment3
                     AddToGrid(grid, titleHeading, 1, 1);
 
                     //var releaseDate = Convert.ToDateTime(reader["ReleaseDate"]);
-                    var releaseDate = Convert.ToDateTime(database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(c => c.Cinema.Name == currentCinema).Select(m => m.Movie.ReleaseDate).FirstOrDefault().ToString());
+                    var releaseDate = Convert.ToDateTime(database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(s => s.ID == item).Select(m => m.Movie.ReleaseDate).FirstOrDefault().ToString());
                     //int runtimeMinutes = Convert.ToInt32(reader["Runtime"]);
-                    int runtimeMinutes = Convert.ToInt32(database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(c => c.Cinema.Name == currentCinema).Select(m => m.Movie.Runtime).FirstOrDefault().ToString());
+                    int runtimeMinutes = Convert.ToInt32(database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(s => s.ID == item).Select(m => m.Movie.Runtime).FirstOrDefault().ToString());
                     var runtime = TimeSpan.FromMinutes(runtimeMinutes);
                     string runtimeString = runtime.Hours + "h " + runtime.Minutes + "m";
                     var details = new TextBlock
