@@ -275,7 +275,10 @@ namespace Assignment3
         {
             cinemaListBox.Items.Clear();
             string currentCity = (string)cityComboBox.SelectedItem;
-            foreach (var cinema in database.Cinemas.Where(c => c.City == currentCity).OrderBy(c => c.Name).Select(c => c.Name))
+            foreach (var cinema in database.Cinemas
+                .Where(c => c.City == currentCity)
+                .OrderBy(c => c.Name)
+                .Select(c => c.Name))
             {
                 cinemaListBox.Items.Add(cinema);
             }
@@ -320,7 +323,7 @@ namespace Assignment3
                     // When we click a screening, buy a ticket for it and update the GUI with the latest list of tickets.
                     button.Click += (sender, e) =>
                         {
-                            BuyTicket(Convert.ToInt32(option));
+                            BuyTicket(Convert.ToInt32(item));
                         };
 
                     // The rest of this method is just creating the GUI element for the screening.
@@ -390,19 +393,32 @@ namespace Assignment3
         private void BuyTicket(int screeningID)
         {
             // First check if we already have a ticket for this screening.
-            string countSql = "SELECT COUNT(*) FROM Tickets WHERE ScreeningID = @ScreeningID";
-            var countCommand = new SqlCommand(countSql, connection);
-            countCommand.Parameters.AddWithValue("@ScreeningID", screeningID);
-            int count = Convert.ToInt32(countCommand.ExecuteScalar());
+
+            //string countSql = "SELECT COUNT(*) FROM Tickets WHERE ScreeningID = @ScreeningID";
+            //var countCommand = new SqlCommand(countSql, connection);
+            //countCommand.Parameters.AddWithValue("@ScreeningID", screeningID);
+            //int count = Convert.ToInt32(countCommand.ExecuteScalar());
+
+            //int count = database.Tickets.Include(t => t.Screening).Where(t => t.Screening.ID == screeningID).Count();
+            int count = database.Tickets.Count();
 
             // If we don't, add it.
             if (count == 0)
             {
-                string insertSql = "INSERT INTO Tickets (ScreeningID, TimePurchased) VALUES (@ScreeningID, @TimePurchased)";
-                using var insertCommand = new SqlCommand(insertSql, connection);
-                insertCommand.Parameters.AddWithValue("@ScreeningID", screeningID);
-                insertCommand.Parameters.AddWithValue("@TimePurchased", DateTime.Now);
-                insertCommand.ExecuteNonQuery();
+                //string insertSql = "INSERT INTO Tickets (ScreeningID, TimePurchased) VALUES (@ScreeningID, @TimePurchased)";
+                //using var insertCommand = new SqlCommand(insertSql, connection);
+                //insertCommand.Parameters.AddWithValue("@ScreeningID", screeningID);
+                //insertCommand.Parameters.AddWithValue("@TimePurchased", DateTime.Now);
+                //insertCommand.ExecuteNonQuery();
+
+                Ticket ticket = new Ticket
+                {
+                    ID = Convert.ToInt32(database.Tickets.Include(t => t.Screening).Where(t => t.Screening.ID == screeningID).Select(t => t.ID).FirstOrDefault()),
+                    TimePurchased = DateTime.Now,
+                };
+                
+                database.Tickets.Add(ticket);
+                database.SaveChanges();
 
                 UpdateTicketList();
             }
@@ -411,14 +427,7 @@ namespace Assignment3
         // Update the GUI with the latest list of tickets
         private void UpdateTicketList()
         {
-            ticketPanel.Children.Clear();
 
-            var queries = database.Tickets
-               .Include(t => t.Screening)
-               .Include(t => t.Screening.Movie)
-               .Include(t => t.Screening.Cinema)
-               .OrderBy(t => t.TimePurchased)
-               .ToList();
             //string sql = @"
             //    SELECT * FROM Tickets
             //    JOIN Screenings ON Tickets.ScreeningID = Screenings.ID
@@ -427,7 +436,14 @@ namespace Assignment3
             //    ORDER BY Tickets.TimePurchased";
             //using var command = new SqlCommand(sql, connection);
             //using var reader = command.ExecuteReader();
+            ticketPanel.Children.Clear();
 
+            var queries = database.Tickets
+               .Include(t => t.Screening)
+               .Include(t => t.Screening.Movie)
+               .Include(t => t.Screening.Cinema)
+               .OrderBy(t => t.TimePurchased)
+               .ToList();
             // For each ticket:
             foreach (var query in queries)
             {
