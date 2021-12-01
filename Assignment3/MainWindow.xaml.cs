@@ -390,33 +390,35 @@ namespace Assignment3
         }
 
         // Buy a ticket for the specified screening and update the GUI with the latest list of tickets.
-        private void BuyTicket(int screeningID)
+        private void BuyTicket(int item)
         {
             // First check if we already have a ticket for this screening.
 
             //string countSql = "SELECT COUNT(*) FROM Tickets WHERE ScreeningID = @ScreeningID";
             //var countCommand = new SqlCommand(countSql, connection);
-            //countCommand.Parameters.AddWithValue("@ScreeningID", screeningID);
+            //countCommand.Parameters.AddWithValue("@ScreeningID", item);
             //int count = Convert.ToInt32(countCommand.ExecuteScalar());
 
-            //int count = database.Tickets.Include(t => t.Screening).Where(t => t.Screening.ID == screeningID).Count();
-            int count = database.Tickets.Count();
+            int count = database.Tickets.Include(t => t.Screening).Where(t => t.Screening.ID == item).Count();
+            //int count = database.Tickets.Count();
 
             // If we don't, add it.
             if (count == 0)
             {
                 //string insertSql = "INSERT INTO Tickets (ScreeningID, TimePurchased) VALUES (@ScreeningID, @TimePurchased)";
                 //using var insertCommand = new SqlCommand(insertSql, connection);
-                //insertCommand.Parameters.AddWithValue("@ScreeningID", screeningID);
+                //insertCommand.Parameters.AddWithValue("@ScreeningID", item);
                 //insertCommand.Parameters.AddWithValue("@TimePurchased", DateTime.Now);
                 //insertCommand.ExecuteNonQuery();
 
                 Ticket ticket = new Ticket
                 {
-                    ID = Convert.ToInt32(database.Tickets.Include(t => t.Screening).Where(t => t.Screening.ID == screeningID).Select(t => t.ID).FirstOrDefault()),
+                    //ID = Convert.ToInt32(database.Tickets.Include(t => t.Screening).Where(t => t.Screening.ID == item).Select(t => t.ID).FirstOrDefault()),
                     TimePurchased = DateTime.Now,
+                    Screening = database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(s => s.ID == item).FirstOrDefault()
+
                 };
-                
+
                 database.Tickets.Add(ticket);
                 database.SaveChanges();
 
@@ -473,17 +475,17 @@ namespace Assignment3
                 grid.RowDefinitions.Add(new RowDefinition());
                 button.Content = grid;
 
-                var posters = @"Posters\" + database.Movies.Select(m => m.PosterPath);
+                var posters = @"Posters\" + database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(s => s.ID == ticketID).Select(m => m.Movie.PosterPath).FirstOrDefault().ToString();
                 var image = CreateImage(posters);
                 image.Width = 30;
                 image.Margin = spacing;
-                image.ToolTip = new ToolTip { Content = database.Movies.Select(m => m.Title) };
+                image.ToolTip = new ToolTip { Content = database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(s => s.ID == ticketID).Select(m => m.Movie.Title).FirstOrDefault().ToString() };
                 AddToGrid(grid, image, 0, 0);
                 Grid.SetRowSpan(image, 2);
 
                 var titleHeading = new TextBlock
                 {
-                    Text = Convert.ToString(database.Movies.Select(m => m.Title)),
+                    Text = Convert.ToString(database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(s => s.ID == ticketID).Select(m => m.Movie.Title).FirstOrDefault().ToString()),
                     Margin = spacing,
                     FontFamily = mainFont,
                     FontSize = 14,
