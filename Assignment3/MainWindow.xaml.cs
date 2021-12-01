@@ -475,17 +475,17 @@ namespace Assignment3
                 grid.RowDefinitions.Add(new RowDefinition());
                 button.Content = grid;
 
-                var posters = @"Posters\" + database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(s => s.ID == ticketID).Select(m => m.Movie.PosterPath).FirstOrDefault().ToString();
+                var posters = @"Posters\" + database.Tickets.Include(t => t.Screening).Include(t => t.Screening.Movie).Include(t => t.Screening.Cinema).Where(t => t.ID == ticketID).Select(t => t.Screening.Movie.PosterPath).FirstOrDefault();
                 var image = CreateImage(posters);
                 image.Width = 30;
                 image.Margin = spacing;
-                image.ToolTip = new ToolTip { Content = database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(s => s.ID == ticketID).Select(m => m.Movie.Title).FirstOrDefault().ToString() };
+                //image.ToolTip = new ToolTip { database.Tickets.Include(t => t.Screening).Include(t => t.Screening.Movie).Include(t => t.Screening.Cinema).Where(t => t.ID == ticketID).Select(t => t.Screening.Movie.Title).ToString()};
                 AddToGrid(grid, image, 0, 0);
                 Grid.SetRowSpan(image, 2);
 
                 var titleHeading = new TextBlock
                 {
-                    Text = Convert.ToString(database.Screenings.Include(s => s.Cinema).Include(s => s.Movie).Where(s => s.ID == ticketID).Select(m => m.Movie.Title).FirstOrDefault().ToString()),
+                    Text = Convert.ToString(database.Tickets.Include(t => t.Screening).Include(t => t.Screening.Movie).Include(t => t.Screening.Cinema).Where(t => t.ID == ticketID).Select(t => t.Screening.Movie.Title).FirstOrDefault().ToString()),
                     Margin = spacing,
                     FontFamily = mainFont,
                     FontSize = 14,
@@ -494,11 +494,12 @@ namespace Assignment3
                 };
                 AddToGrid(grid, titleHeading, 0, 1);
 
-                //var time = (TimeSpan)reader["Time"];
-                //string timeString = TimeSpanToString(time);
+                
+                var time = TimeSpan.Parse(database.Tickets.Include(t => t.Screening).Include(t => t.Screening.Movie).Include(t => t.Screening.Cinema).Where(t => t.ID == ticketID).Select(t => t.Screening.Time).FirstOrDefault().ToString());
+                string timeString = TimeSpanToString(time);
                 var timeAndCinemaHeading = new TextBlock
                 {
-                    //Text = timeString + " - " + reader["Name"],
+                    Text = timeString + " - " + database.Tickets.Include(t => t.Screening).Include(t => t.Screening.Movie).Include(t => t.Screening.Cinema).Where(t => t.ID == ticketID).Select(t => t.Screening.Cinema.Name).FirstOrDefault().ToString(),
                     Margin = spacing,
                     FontFamily = new FontFamily("Corbel"),
                     FontSize = 12,
