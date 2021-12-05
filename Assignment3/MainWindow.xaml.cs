@@ -2,22 +2,13 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using GeographyTools;
 using Microsoft.EntityFrameworkCore;
-using Windows.Devices.Geolocation;
 
 namespace Assignment3
 {
@@ -281,8 +272,8 @@ namespace Assignment3
                 string currentCinema = (string)cinemaListBox.SelectedItem;
                 int[] movies = database.Screenings
                     .Include(s => s.Cinema)
-                    .Include(s => s.Movie)
                     .Where(c => c.Cinema.Name == currentCinema)
+                    .OrderBy(s => s.Time)
                     .Select(s => s.ID)
                     .ToArray();
 
@@ -323,13 +314,13 @@ namespace Assignment3
                     var image = CreateImage(posters);
                     image.Width = 50;
                     image.Margin = spacing;
-                    image.ToolTip = new ToolTip 
-                    { 
+                    image.ToolTip = new ToolTip
+                    {
                         Content = database.Screenings
                         .Include(s => s.Movie)
                         .Where(s => s.ID == movie)
                         .Select(m => m.Movie.Title)
-                        .FirstOrDefault() 
+                        .FirstOrDefault()
                     };
                     AddToGrid(grid, image, 0, 0);
                     Grid.SetRowSpan(image, 3);
@@ -465,8 +456,9 @@ namespace Assignment3
                 var image = CreateImage(posters);
                 image.Width = 30;
                 image.Margin = spacing;
-                image.ToolTip = new ToolTip 
-                { Content = database.Tickets
+                image.ToolTip = new ToolTip
+                {
+                    Content = database.Tickets
                 .Include(t => t.Screening)
                 .Where(t => t.ID == ticketID)
                 .Select(t => t.Screening.Movie.Title)
